@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/bixly_test.iml" filepath="$PROJECT_DIR$/.idea/bixly_test.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../online_store/.idea/online_store.iml" filepath="$PROJECT_DIR$/../online_store/.idea/online_store.iml" />
     </modules>
   </component>
 </project>

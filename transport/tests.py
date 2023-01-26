@@ -1,15 +1,15 @@
 from django.test import TestCase, Client
+from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
 from .models import Car
 
 # Create your tests here.
 
 
-class TransportTestCase(TestCase):
+class TransportTestCase(APITestCase):
 
     def setUp(self):
-        model = get_user_model().objects.create_superuser(username='admin', password='admin')
-        self.client = Client()
+        self.user = get_user_model().objects.create_user(username='user', password='resu')
         self.transport_data = {
             'make': 'tesla',
             'model': 's3',
@@ -19,6 +19,11 @@ class TransportTestCase(TestCase):
         }
 
     def transport_crud_test(self, path, data):
+        # request token
+        res = self.client.post('/auth-token/', data={'username': 'user', 'password': 'resu'})
+        token = res.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
+
         # empty
         resp = self.client.get(path)
         self.assertEqual(resp.status_code, 200)
@@ -34,7 +39,7 @@ class TransportTestCase(TestCase):
 
         # update
         data['model'] = 'new model'
-        resp = self.client.put(f'{path}{resp.data["id"]}/', data=data, content_type='application/json')
+        resp = self.client.put(f'{path}{resp.data["id"]}/', data=data)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.data['model'], 'new model')
 
@@ -43,6 +48,12 @@ class TransportTestCase(TestCase):
         self.assertEqual(resp.status_code, 204)
         resp = self.client.get(path)
         self.assertEqual(len(resp.data), 0)
+
+        # wrong token denied
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token[:-1])
+        resp = self.client.get(path)
+        self.assertEqual(resp.status_code, 401)
+
 
     def test_cars(self):
         car_data = {
