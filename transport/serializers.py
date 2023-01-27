@@ -36,6 +36,6 @@ class BoatSerializer(serializers.ModelSerializer):
             *transport_fields,
             'length',
             'width',
-            'NIH',
+            'HIN',
             'current_hours',
         ]

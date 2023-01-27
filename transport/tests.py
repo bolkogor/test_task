@@ -97,7 +97,7 @@ class TransportTestCase(APITestCase):
             **self.transport_data,
             'length': '11.04',
             'width': '3.10',
-            'NIH': 'WRWF546KJ',
+            'HIN': 'WRWF546KJ',
             'current_hours': '18.87'
         }
         self.transport_crud_test('/boats/', boat_data)
