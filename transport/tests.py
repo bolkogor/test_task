@@ -1,8 +1,7 @@
-from django.test import TestCase, Client
+from datetime import datetime, timedelta
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
-from .models import Car
-
+import time_machine
 # Create your tests here.
 
 
@@ -19,10 +18,16 @@ class TransportTestCase(APITestCase):
         }
 
     def transport_crud_test(self, path, data):
+        # no access without token
+        self.client.login(username='user', passowrd='resu')
+        resp = self.client.get(path)
+        self.assertEqual(resp.status_code, 401)
+
         # request token
-        res = self.client.post('/auth-token/', data={'username': 'user', 'password': 'resu'})
-        token = res.data['token']
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
+        res = self.client.post('/api/token/', data={'username': 'user', 'password': 'resu'})
+        token = res.data['access']
+        refresh_token = res.data['refresh']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + token)
 
         # empty
         resp = self.client.get(path)
@@ -49,11 +54,22 @@ class TransportTestCase(APITestCase):
         resp = self.client.get(path)
         self.assertEqual(len(resp.data), 0)
 
+        # expired token
+        with time_machine.travel(datetime.now() + timedelta(minutes=6)):
+            resp = self.client.get(path)
+            self.assertEqual(resp.status_code, 401)
+            # refresh token
+            res = self.client.post('/api/token/refresh/', data={'refresh': refresh_token})
+            token = res.data['access']
+            self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + token)
+            # works again
+            resp = self.client.get(path)
+            self.assertEqual(resp.status_code, 200)
+
         # wrong token denied
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token[:-1])
+        self.client.credentials(Authorization='Bearer ' + token[:-1])
         resp = self.client.get(path)
         self.assertEqual(resp.status_code, 401)
-
 
     def test_cars(self):
         car_data = {
@@ -85,6 +101,3 @@ class TransportTestCase(APITestCase):
             'current_hours': '18.87'
         }
         self.transport_crud_test('/boats/', boat_data)
-
-
-

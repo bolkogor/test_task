@@ -1,11 +1,8 @@
-"""bixly_test URL Configuration
-"""
-
-
 from django.urls import path, include
-from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
-    path('auth-token/', obtain_auth_token, name='auth-token'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token-obtain'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('', include('transport.urls')),
 ]
